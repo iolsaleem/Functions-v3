@@ -1,0 +1,35 @@
+{
+  "name": "athena-functions",
+  "version": "1.0.0",
+  "description": "Athena Azure Functions backend",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "watch": "npx tsc --watch",
+    "start": "func start",
+    "prestart": "npm run build",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.28.0",
+    "@azure/cosmos": "^4.9.1",
+    "@azure/functions": "^4.0.0",
+    "@microsoft/microsoft-graph-client": "^3.0.0",
+    "axios": "^1.6.0",
+    "build": "^0.1.4",
+    "date-fns": "^3.0.0",
+    "dotenv": "^17.3.1",
+    "isomorphic-fetch": "^3.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "node-fetch": "^2.7.0",
+    "npm": "^11.6.0",
+    "run": "^1.5.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^20.19.37",
+    "@types/node-fetch": "^2.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

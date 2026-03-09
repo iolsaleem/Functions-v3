@@ -1,0 +1,44 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const functions_1 = require("@azure/functions");
+const graph_1 = require("../shared/graph");
+const classifier_1 = require("../shared/classifier");
+const cosmos_1 = require("../shared/cosmos");
+// ── TIMER: 06:00 GST = 02:00 UTC ─────────────────────────
+functions_1.app.timer('morningBrief', {
+    schedule: '0 0 2 * * *',
+    handler: async (_timer, context) => {
+        context.log('[morningBrief] Generating daily brief...');
+        const ceoEmail = process.env.CEO_EMAIL || 'ceo@iol.world';
+        const today = new Date();
+        const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        // Fetch active emails from last 24h needing attention
+        const emails = await (0, cosmos_1.query)(cosmos_1.CONTAINERS.EMAILS, `SELECT TOP 20 c.subject, c.from, c.summary, c.tags, c.bu, c.actionRequired, c.receivedDateTime
+       FROM c WHERE c.status = 'active' AND c.tier = 1`).then(results => results.sort((a, b) => (b.receivedDateTime ?? '').localeCompare(a.receivedDateTime ?? '')));
+        // Fetch today's calendar
+        const calEvents = await (0, graph_1.fetchCalendarEvents)(ceoEmail, today.toISOString(), tomorrow.toISOString());
+        const emailsForBrief = emails.map(e => ({
+            subject: e.subject,
+            from: e.from?.name ?? e.from?.email ?? '',
+            summary: e.summary,
+            tags: e.tags ?? [],
+        }));
+        const calForBrief = calEvents.map(e => ({
+            subject: e.subject,
+            start: e.start?.dateTime ?? '',
+            end: e.end?.dateTime ?? '',
+        }));
+        const briefText = await (0, classifier_1.generateDailyBrief)(emailsForBrief, calForBrief);
+        const doc = {
+            id: `brief-${today.toISOString().split('T')[0]}`,
+            date: today.toISOString().split('T')[0],
+            text: briefText,
+            emailCount: emails.length,
+            calendarCount: calEvents.length,
+            generatedAt: new Date().toISOString(),
+        };
+        await (0, cosmos_1.upsert)(cosmos_1.CONTAINERS.BRIEFS, doc);
+        context.log('[morningBrief] Brief generated and stored');
+    },
+});
+//# sourceMappingURL=index.js.map

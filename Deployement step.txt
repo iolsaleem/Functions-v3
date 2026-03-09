@@ -1,0 +1,8 @@
+npm run build
+
+# 1. Create proper deployment zip including dist + node_modules + host.json + package.json
+Compress-Archive -Path dist, node_modules, host.json, package.json -DestinationPath deploy.zip -Force
+powershell -ExecutionPolicy Bypass -File .\compress.ps1
+
+
+powershell -ExecutionPolicy Bypass -File .\deploy.ps1
